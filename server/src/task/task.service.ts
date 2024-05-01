@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -10,6 +10,41 @@ export class TaskService {
   constructor(
     @InjectRepository(Task) private readonly taskRepository: Repository<Task>
   ) {}
+
+  private async getDependenciesOfDependent(dependentID: string): Promise<string[]> {
+    let dependent = await this.findOne(dependentID);
+    return dependent.dependencies;
+  }
+
+  private async isCircular(newTaskID: string, dependencyIDs: string[]): Promise<boolean> {
+    for (let i = 0; i < dependencyIDs.length; i++) {
+      let dependentID = dependencyIDs[i];
+      let dependencies = await this.getDependenciesOfDependent(dependentID)
+      if (dependencies.includes(newTaskID)) {
+        return true;
+      } else {
+        let nextLayer = await this.isCircular(newTaskID, dependencies);
+        if (nextLayer === false) {
+          continue;
+        } else {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private async checkForCircularDependencies(taskID: string, oldDependencies: string[], newDependencies: string[]): Promise<boolean> {
+    let dependencies = [];
+    newDependencies.forEach(newDependency => {
+      if (!oldDependencies.includes(newDependency)) {
+        dependencies.push(newDependency);
+      }
+    });
+
+    return await this.isCircular(taskID, dependencies);
+  }
 
   create(createTaskDto: CreateTaskDto): Promise<Task> {
     const task: Task = new Task();
@@ -44,15 +79,22 @@ export class TaskService {
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
-    const task: Task = new Task();
-    task.id = id;
-    task.author = updateTaskDto.author;
-    task.priority = updateTaskDto.priority;
-    task.dependencies = updateTaskDto.dependencies;
-    task.status = updateTaskDto.status;
-    task.title = updateTaskDto.title;
-    task.description = updateTaskDto.description;
-    return this.taskRepository.save(task);
+    const currentTask = await this.findOne(id);
+    const hasCircularDependencies = await this.checkForCircularDependencies(id, currentTask.dependencies, updateTaskDto.dependencies);
+
+    if (hasCircularDependencies) {
+      throw new HttpException('Circular dependency structure detected!', HttpStatus.CONFLICT);
+    } else {
+      const task: Task = new Task();
+      task.id = id;
+      task.author = updateTaskDto.author;
+      task.priority = updateTaskDto.priority;
+      task.dependencies = updateTaskDto.dependencies;
+      task.status = updateTaskDto.status;
+      task.title = updateTaskDto.title;
+      task.description = updateTaskDto.description;
+      return this.taskRepository.save(task);
+    }
   }
 
   remove(id: string): Promise<{ affected?: number }> {

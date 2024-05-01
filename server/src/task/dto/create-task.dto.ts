@@ -3,6 +3,7 @@ import {
   IsArray,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   MinLength
 } from 'class-validator';
@@ -29,8 +30,8 @@ export class CreateTaskDto {
   @IsString()
   description: string;
 
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
-  @Optional()
   id: string;
 }
