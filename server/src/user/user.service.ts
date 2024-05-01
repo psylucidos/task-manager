@@ -23,11 +23,11 @@ export class UserService {
     return this.userRepository.find();
   }
 
-  findOne(id: number): Promise<User> {
+  findOne(id: string): Promise<User> {
     return this.userRepository.findOneBy({ id });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user: User = new User();
     user.email = updateUserDto.email;
     user.username = updateUserDto.username;
@@ -36,7 +36,7 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  remove(id: number): Promise<{ affected?: number }> {
+  remove(id: string): Promise<{ affected?: number }> {
     return this.userRepository.delete(id);
   }
 }

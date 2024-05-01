@@ -9,6 +9,8 @@ import { AppModule } from './../src/app.module';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
+  let createdUserID: Number;
+  let createdTaskID: Number;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -27,8 +29,6 @@ describe('AppController (e2e)', () => {
   });
 
   describe('UserController (e2e)', ()=> {
-    let createdUserID: Number;
-
     it('/user (GET)', () => {
       return request(app.getHttpServer())
         .get('/user')
@@ -97,6 +97,96 @@ describe('AppController (e2e)', () => {
     it('/user (GET)', async () => {
       const res = await request(app.getHttpServer())
         .get('/user');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(0);
+    });
+  });
+
+  describe('TaskContoller (e2e)', ()=> {
+    it('/task (GET)', () => {
+      return request(app.getHttpServer())
+        .get('/task')
+        .expect(200)
+        .expect([]);
+    });
+
+    it('/task (POST)', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/task')
+        .send({
+          author: createdUserID,
+          priority: 0,
+          dependencies: ['9f8hyj9o8y'],
+          status: 0,
+          title: 'title!',
+          description: 'description.'
+        });
+      
+      expect(res.status).toBe(201);
+      expect(res.body.author).toEqual(createdUserID);
+      expect(res.body.priority).toEqual(0);
+      expect(res.body.dependencies).toHaveLength(1);
+      expect(res.body.status).toEqual(0);
+      expect(res.body.title).toEqual('title!');
+      expect(res.body.description).toEqual('description.');
+
+      createdTaskID = res.body.id;
+    });
+
+    it(`/task/${createdTaskID} (GET)`, async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/task/${createdTaskID}`);
+      
+      expect(res.status).toBe(200);
+      expect(res.body.author).toEqual(createdUserID);
+      expect(res.body.priority).toEqual(0);
+      expect(res.body.dependencies).toHaveLength(1);
+      expect(res.body.status).toEqual(0);
+      expect(res.body.title).toEqual('title!');
+      expect(res.body.description).toEqual('description.');
+    });
+
+    it('/task (GET)', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/task');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(1);
+    });
+
+    it(`/task/${createdTaskID} (PATCH)`, async () => {
+      const res = await request(app.getHttpServer())
+        .patch(`/task/${createdTaskID}`)
+        .send({
+          author: createdUserID,
+          priority: 1,
+          dependencies: ['9f8hyj9o8y', 'ant324ui9'],
+          status: 2,
+          title: 'new title!',
+          description: 'updated description.'
+        });
+      
+      expect(res.status).toBe(200);
+      expect(res.body.author).toEqual(createdUserID);
+      expect(res.body.priority).toEqual(1);
+      expect(res.body.dependencies).toHaveLength(2);
+      expect(res.body.status).toEqual(2);
+      expect(res.body.title).toEqual('new title!');
+      expect(res.body.description).toEqual('updated description.');
+    });
+
+    it(`/task/${createdTaskID} (DELETE)`, async () => {
+      const res = await request(app.getHttpServer())
+        .delete(`/task/${createdTaskID}`);
+      
+      expect(res.status).toBe(200);
+      expect(res.body.affected).toBe(1);
+    });
+
+    it('/task (GET)', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/task');
       
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(0);
