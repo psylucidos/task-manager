@@ -46,6 +46,21 @@ export class TaskService {
     return await this.isCircular(taskID, dependencies);
   }
 
+  private async checkIfDoable(taskID: string, dependencies: string[]): Promise<boolean> {
+    for(let i = 0; i < dependencies.length; i++) {
+      let dependentID = dependencies[i];
+      let dependent = await this.findOne(dependentID);
+
+      if (dependent.status === 2) { // task is complete - no need to look up dependency tree
+        continue;
+      } else {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   create(createTaskDto: CreateTaskDto): Promise<Task> {
     const task: Task = new Task();
     task.author = createTaskDto.author;
@@ -74,8 +89,18 @@ export class TaskService {
     });
   }
 
-  findOne(id: string): Promise<Task> {
-    return this.taskRepository.findOneBy({ id });
+  async findOne(id: string): Promise<Task> {
+    if (id.length === 36) {
+      let task = await this.taskRepository.findOneBy({ id });
+      if (task === null) {
+        throw new HttpException('No task found!', HttpStatus.BAD_REQUEST);
+      } else {
+        task.doable = await this.checkIfDoable(task.id, task.dependencies);
+        return task;
+      }
+    } else {
+      throw new HttpException('Invalid ID!', HttpStatus.BAD_REQUEST);
+    }
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
