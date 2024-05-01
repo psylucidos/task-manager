@@ -1,3 +1,4 @@
+import { Optional } from '@nestjs/common';
 import {
   IsAlphanumeric,
   IsEmail,
@@ -22,4 +23,9 @@ export class CreateUserDto {
   @IsString()
   @MinLength(6, { message: 'Password must have at least 6 characters.' })
   password: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Optional()
+  id: string;
 }

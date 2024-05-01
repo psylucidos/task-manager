@@ -19,11 +19,24 @@ export class TaskService {
     task.status = createTaskDto.status;
     task.title = createTaskDto.title;
     task.description = createTaskDto.description;
+
+    if (createTaskDto.id) {
+      task.id = createTaskDto.id;
+    }
+
     return this.taskRepository.save(task);
   }
 
   findAll(): Promise<Task[]> {
     return this.taskRepository.find();
+  }
+
+  findByAuthor(id: string): Promise<Task[]> {
+    return this.taskRepository.find({
+      where: {
+        author: id
+      }
+    });
   }
 
   findOne(id: string): Promise<Task> {

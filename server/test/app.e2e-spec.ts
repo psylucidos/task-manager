@@ -9,8 +9,8 @@ import { AppModule } from './../src/app.module';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
-  let createdUserID: Number;
-  let createdTaskID: Number;
+  const testUserID: string = 'b8a543cc-c27e-49ee-9470-17fdb253828b';
+  const testTaskID: string = 'fbc236ee-1d40-4d90-995d-ebe97ff01ca3';
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,6 +40,7 @@ describe('AppController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/user')
         .send({
+          id: testUserID,
           username: 'testuser',
           password: 'Password123/',
           email: 'test@gmail.com'
@@ -49,13 +50,11 @@ describe('AppController (e2e)', () => {
       expect(res.body.username).toEqual('testuser');
       expect(res.body.password).toEqual('Password123/');
       expect(res.body.email).toEqual('test@gmail.com');
-
-      createdUserID = res.body.id;
     });
 
-    it(`/user/${createdUserID} (GET)`, async () => {
+    it(`/user/:id (GET)`, async () => {
       const res = await request(app.getHttpServer())
-        .get(`/user/${createdUserID}`);
+        .get(`/user/${testUserID}`);
       
       expect(res.status).toBe(200);
       expect(res.body.username).toEqual('testuser');
@@ -71,9 +70,9 @@ describe('AppController (e2e)', () => {
       expect(res.body).toHaveLength(1);
     });
 
-    it(`/user/${createdUserID} (PATCH)`, async () => {
+    it(`/user/:id (PATCH)`, async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/user/${createdUserID}`)
+        .patch(`/user/${testUserID}`)
         .send({
           username: 'updatedtestuser',
           password: 'NewPassword123/',
@@ -86,9 +85,9 @@ describe('AppController (e2e)', () => {
       expect(res.body.email).toEqual('newemail@gmail.com');
     });
 
-    it(`/user/${createdUserID} (DELETE)`, async () => {
+    it(`/user/:id (DELETE)`, async () => {
       const res = await request(app.getHttpServer())
-        .delete(`/user/${createdUserID}`);
+        .delete(`/user/${testUserID}`);
       
       expect(res.status).toBe(200);
       expect(res.body.affected).toBe(1);
@@ -115,31 +114,30 @@ describe('AppController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/task')
         .send({
-          author: createdUserID,
+          id: testTaskID,
+          author: testUserID,
           priority: 0,
-          dependencies: ['9f8hyj9o8y'],
+          dependencies: ['324fffed'],
           status: 0,
           title: 'title!',
           description: 'description.'
         });
       
       expect(res.status).toBe(201);
-      expect(res.body.author).toEqual(createdUserID);
+      expect(res.body.author).toEqual(testUserID);
       expect(res.body.priority).toEqual(0);
       expect(res.body.dependencies).toHaveLength(1);
       expect(res.body.status).toEqual(0);
       expect(res.body.title).toEqual('title!');
       expect(res.body.description).toEqual('description.');
-
-      createdTaskID = res.body.id;
     });
 
-    it(`/task/${createdTaskID} (GET)`, async () => {
+    it(`/task/:id (GET)`, async () => {
       const res = await request(app.getHttpServer())
-        .get(`/task/${createdTaskID}`);
+        .get(`/task/${testTaskID}`);
       
       expect(res.status).toBe(200);
-      expect(res.body.author).toEqual(createdUserID);
+      expect(res.body.author).toEqual(testUserID);
       expect(res.body.priority).toEqual(0);
       expect(res.body.dependencies).toHaveLength(1);
       expect(res.body.status).toEqual(0);
@@ -155,11 +153,21 @@ describe('AppController (e2e)', () => {
       expect(res.body).toHaveLength(1);
     });
 
-    it(`/task/${createdTaskID} (PATCH)`, async () => {
+    it(`/task/author/:id (GET)`, async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/task/${createdTaskID}`)
+        .get(`/task/author/${testUserID}`);
+      
+      console.log(res.body);
+
+      expect(res.status).toBe(200);
+      expect(res.body[0].author).toEqual(testUserID);
+    });
+
+    it(`/task/:id (PATCH)`, async () => {
+      const res = await request(app.getHttpServer())
+        .patch(`/task/${testTaskID}`)
         .send({
-          author: createdUserID,
+          author: testUserID,
           priority: 1,
           dependencies: ['9f8hyj9o8y', 'ant324ui9'],
           status: 2,
@@ -167,8 +175,10 @@ describe('AppController (e2e)', () => {
           description: 'updated description.'
         });
       
+      console.log(res.body);
+
       expect(res.status).toBe(200);
-      expect(res.body.author).toEqual(createdUserID);
+      expect(res.body.author).toEqual(testUserID);
       expect(res.body.priority).toEqual(1);
       expect(res.body.dependencies).toHaveLength(2);
       expect(res.body.status).toEqual(2);
@@ -176,9 +186,11 @@ describe('AppController (e2e)', () => {
       expect(res.body.description).toEqual('updated description.');
     });
 
-    it(`/task/${createdTaskID} (DELETE)`, async () => {
+    it(`/task/:id (DELETE)`, async () => {
       const res = await request(app.getHttpServer())
-        .delete(`/task/${createdTaskID}`);
+        .delete(`/task/${testTaskID}`);
+      
+      console.log(res.body);
       
       expect(res.status).toBe(200);
       expect(res.body.affected).toBe(1);
@@ -188,6 +200,8 @@ describe('AppController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .get('/task');
       
+      console.log(res.body);
+
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(0);
     });

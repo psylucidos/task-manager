@@ -1,9 +1,10 @@
+import { Optional } from '@nestjs/common';
 import {
   IsArray,
   IsNotEmpty,
   IsNumber,
   IsString,
-  MinLength,
+  MinLength
 } from 'class-validator';
 
 export class CreateTaskDto {
@@ -27,4 +28,9 @@ export class CreateTaskDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Optional()
+  id: string;
 }

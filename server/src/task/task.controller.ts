@@ -25,6 +25,11 @@ export class TaskController {
     return this.taskService.findAll();
   }
 
+  @Get('/author/:id')
+  findByAuthor(@Param('id') id: string) {
+    return this.taskService.findByAuthor(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.taskService.findOne(id);
