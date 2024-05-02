@@ -19,6 +19,9 @@ export class CreateTaskDto {
   @IsArray()
   dependencies: string[];
 
+  @IsArray()
+  subtasks: string[];
+
   @IsNumber()
   status: number;
 

@@ -117,7 +117,8 @@ describe('AppController (e2e)', () => {
           id: testTaskID,
           author: testUserID,
           priority: 0,
-          dependencies: ['324fffed'],
+          dependencies: ['fbc236ee-1d40-4d90-995d-ebe97ff01ca4'],
+          subtasks: [],
           status: 0,
           title: 'title!',
           description: 'description.'
@@ -156,8 +157,6 @@ describe('AppController (e2e)', () => {
     it(`/task/author/:id (GET)`, async () => {
       const res = await request(app.getHttpServer())
         .get(`/task/author/${testUserID}`);
-      
-      console.log(res.body);
 
       expect(res.status).toBe(200);
       expect(res.body[0].author).toEqual(testUserID);
@@ -169,13 +168,12 @@ describe('AppController (e2e)', () => {
         .send({
           author: testUserID,
           priority: 1,
-          dependencies: ['9f8hyj9o8y', 'ant324ui9'],
+          dependencies: ['fbc236ee-1d40-4d90-995d-ebe97ff01ca1', 'fbc236ee-1d40-4d90-995d-ebe97ff01ca0'],
+          subtasks: [],
           status: 2,
           title: 'new title!',
           description: 'updated description.'
         });
-      
-      console.log(res.body);
 
       expect(res.status).toBe(200);
       expect(res.body.author).toEqual(testUserID);
@@ -190,8 +188,6 @@ describe('AppController (e2e)', () => {
       const res = await request(app.getHttpServer())
         .delete(`/task/${testTaskID}`);
       
-      console.log(res.body);
-      
       expect(res.status).toBe(200);
       expect(res.body.affected).toBe(1);
     });
@@ -199,8 +195,6 @@ describe('AppController (e2e)', () => {
     it('/task (GET)', async () => {
       const res = await request(app.getHttpServer())
         .get('/task');
-      
-      console.log(res.body);
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(0);

@@ -12,8 +12,12 @@ export class TaskService {
   ) {}
 
   private async getDependenciesOfDependent(dependentID: string): Promise<string[]> {
-    let dependent = await this.findOne(dependentID);
-    return dependent.dependencies;
+    let dependent = await this.taskRepository.findOneBy({ id: dependentID });
+    if (!dependent) {
+      return [];
+    } else {
+      return dependent.dependencies;
+    }
   }
 
   private async isCircular(newTaskID: string, dependencyIDs: string[]): Promise<boolean> {
@@ -46,12 +50,23 @@ export class TaskService {
     return await this.isCircular(taskID, dependencies);
   }
 
-  private async checkIfDoable(taskID: string, dependencies: string[]): Promise<boolean> {
+  private async checkIfDoable(dependencies: string[], subtasks: string[]): Promise<boolean> {
     for(let i = 0; i < dependencies.length; i++) {
       let dependentID = dependencies[i];
-      let dependent = await this.findOne(dependentID);
+      let dependent = await this.taskRepository.findOneBy({ id: dependentID });
 
-      if (dependent.status === 2) { // task is complete - no need to look up dependency tree
+      if (!dependent || dependent.status === 2) { // task is complete - no need to look up dependency tree
+        continue;
+      } else {
+        return false;
+      }
+    }
+
+    for(let i = 0; i < subtasks.length; i++) {
+      let subtaskID = subtasks[i];
+      let subtask = await this.taskRepository.findOneBy({ id: subtaskID });
+
+      if (!subtask || subtask.status === 2) { // subtask is complete
         continue;
       } else {
         return false;
@@ -66,6 +81,7 @@ export class TaskService {
     task.author = createTaskDto.author;
     task.priority = createTaskDto.priority;
     task.dependencies = createTaskDto.dependencies;
+    task.subtasks = createTaskDto.subtasks;
     task.status = createTaskDto.status;
     task.title = createTaskDto.title;
     task.description = createTaskDto.description;
@@ -77,29 +93,37 @@ export class TaskService {
     return this.taskRepository.save(task);
   }
 
-  findAll(): Promise<Task[]> {
-    return this.taskRepository.find();
+  async findAll(): Promise<Task[]> {
+    let tasks = await this.taskRepository.find();
+
+    for(let i = 0; i < tasks.length; i++) {
+      tasks[i].doable = await this.checkIfDoable(tasks[i].dependencies, tasks[i].subtasks);
+    }
+
+    return tasks;
   }
 
-  findByAuthor(id: string): Promise<Task[]> {
-    return this.taskRepository.find({
+  async findByAuthor(id: string): Promise<Task[]> {
+    let tasks = await this.taskRepository.find({
       where: {
         author: id
       }
     });
+
+    for(let i = 0; i < tasks.length; i++) {
+      tasks[i].doable = await this.checkIfDoable(tasks[i].dependencies, tasks[i].subtasks);
+    }
+
+    return tasks;
   }
 
   async findOne(id: string): Promise<Task> {
-    if (id.length === 36) {
-      let task = await this.taskRepository.findOneBy({ id });
-      if (task === null) {
-        throw new HttpException('No task found!', HttpStatus.BAD_REQUEST);
-      } else {
-        task.doable = await this.checkIfDoable(task.id, task.dependencies);
-        return task;
-      }
+    let task = await this.taskRepository.findOneBy({ id });
+    if (task === null) {
+      return null;
     } else {
-      throw new HttpException('Invalid ID!', HttpStatus.BAD_REQUEST);
+      task.doable = await this.checkIfDoable(task.dependencies, task.subtasks);
+      return task;
     }
   }
 
@@ -115,6 +139,7 @@ export class TaskService {
       task.author = updateTaskDto.author;
       task.priority = updateTaskDto.priority;
       task.dependencies = updateTaskDto.dependencies;
+      task.subtasks = updateTaskDto.subtasks;
       task.status = updateTaskDto.status;
       task.title = updateTaskDto.title;
       task.description = updateTaskDto.description;
@@ -122,7 +147,32 @@ export class TaskService {
     }
   }
 
-  remove(id: string): Promise<{ affected?: number }> {
-    return this.taskRepository.delete(id);
+  async remove(id: string): Promise<{ affected?: number }> {
+    const targetTask = await this.taskRepository.findOneBy({ id });
+
+    if (targetTask) {
+      const authorID = targetTask.author;
+      const allTasks = await this.findByAuthor(authorID);
+
+      allTasks.forEach(task => {
+        if (task.dependencies.includes(id)) {
+          task.dependencies.splice(task.dependencies.indexOf(id), 1);
+          const newTask: Task = new Task();
+          newTask.id = task.id;
+          newTask.author = task.author;
+          newTask.priority = task.priority;
+          newTask.dependencies = task.dependencies;
+          newTask.subtasks = task.subtasks;
+          newTask.status = task.status;
+          newTask.title = task.title;
+          newTask.description = task.description;
+          this.taskRepository.save(newTask);
+        }
+      });
+
+      return this.taskRepository.delete(id);
+    } else {
+      throw new HttpException('No task found!', HttpStatus.BAD_REQUEST);
+    }
   }
 }

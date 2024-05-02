@@ -1,6 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
 
 @Entity()
 export class Task {
@@ -15,6 +14,10 @@ export class Task {
 
   @Column('varchar', { array: true })
   dependencies: string[];
+
+  @IsOptional()
+  @Column('varchar', { array: true })
+  subtasks: string[];
 
   @Column('int')
   status: number;
