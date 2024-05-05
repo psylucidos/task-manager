@@ -1,5 +1,6 @@
 import {
   Controller,
+  Request,
   Get,
   Post,
   Body,
@@ -18,7 +19,11 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
+  create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
+    if (createTaskDto.author !== req.user.id) {
+      throw new HttpException('Not authorized to author task!', HttpStatus.UNAUTHORIZED);
+    }
+
     for(let i = 0; i < createTaskDto.dependencies.length; i++) {
       if (createTaskDto.dependencies[i].length !== 36) {
         throw new HttpException('Invalid dependency ID format!', HttpStatus.BAD_REQUEST);
@@ -34,31 +39,48 @@ export class TaskController {
     return this.taskService.create(createTaskDto);
   }
 
-  @Get()
-  findAll() {
-    return this.taskService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.taskService.findAll();
+  // }
 
   @Get('/author/:id')
-  findByAuthor(@Param('id') id: string) {
-    if (id.length === 36) {
-      return this.taskService.findByAuthor(id);
+  findByAuthor(@Param('id') id: string, @Request() req) {
+    if (id === req.user.id) { // only execute request if client is author
+      if (id.length === 36) {
+        return this.taskService.findByAuthor(id);
+      } else {
+        throw new HttpException('Invalid ID format!', HttpStatus.BAD_REQUEST);
+      }
     } else {
-      throw new HttpException('Invalid ID format!', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Not authorized to get task!', HttpStatus.UNAUTHORIZED);
     }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Request() req) {
     if (id.length === 36) {
-      return this.taskService.findOne(id);
+      const targetTask = await this.taskService.findOne(id);
+      if (targetTask) {
+        if (targetTask.author === req.user.id) { // only return request if client is author
+          return targetTask;
+        } else {
+          throw new HttpException('Not authorized to get task!', HttpStatus.UNAUTHORIZED);
+        }
+      } else {
+        throw new HttpException('Cant find task!', HttpStatus.BAD_REQUEST);
+      }
     } else {
       throw new HttpException('Invalid ID format!', HttpStatus.BAD_REQUEST);
     }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Request() req) {
+    if (updateTaskDto.author !== req.user.id) {
+      throw new HttpException('Not authorized to author task!', HttpStatus.UNAUTHORIZED);
+    }
+
     for(let i = 0; i < updateTaskDto.dependencies.length; i++) {
       if (updateTaskDto.dependencies[i].length !== 36) {
         throw new HttpException('Invalid dependency ID format!', HttpStatus.BAD_REQUEST);
@@ -79,9 +101,18 @@ export class TaskController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Request() req) {
     if (id.length === 36) {
-      return this.taskService.remove(id);
+      const targetTask = await this.taskService.findOne(id);
+      if (targetTask) {
+        if (targetTask.author === req.user.id) { // only execute request if client is author
+          return this.taskService.remove(id);
+        } else {
+          throw new HttpException('Not authorized to delete task!', HttpStatus.UNAUTHORIZED);
+        }
+      } else {
+        throw new HttpException('Cant find task!', HttpStatus.BAD_REQUEST);
+      }
     } else {
       throw new HttpException('Invalid ID format!', HttpStatus.BAD_REQUEST);
     }

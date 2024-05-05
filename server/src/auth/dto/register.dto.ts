@@ -7,7 +7,7 @@ import {
   IsOptional
 } from 'class-validator';
 
-export class CreateUserDto {
+export class RegisterDto {
   @IsNotEmpty()
   @MinLength(3, { message: 'Username must have at least 3 characters.' })
   @IsAlphanumeric('en-US', {
@@ -24,8 +24,8 @@ export class CreateUserDto {
   @MinLength(6, { message: 'Password must have at least 6 characters.' })
   password: string;
 
-  @IsOptional()
   @IsNotEmpty()
   @IsString()
+  @IsOptional()
   id: string;
 }

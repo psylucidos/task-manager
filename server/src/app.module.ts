@@ -6,6 +6,10 @@ import { UserModule } from './user/user.module';
 import { TaskModule } from './task/task.module';
 import { User } from './user/entities/user.entity';
 import { Task } from './task/entities/task.entity';
+import { AuthModule } from './auth/authentication.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtGuard } from './auth/guard/jwt.guard';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -20,10 +24,18 @@ import { Task } from './task/entities/task.entity';
       synchronize: true,
       logging: process.env.DBLOG === 'true',
     }),
+    AuthModule,
     UserModule,
     TaskModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    JwtStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
+    },
+  ],
 })
 export class AppModule {}
