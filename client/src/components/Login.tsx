@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { RootState } from '../app/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { setID, setToken, setUsername } from '../app/authslice';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Login() {
   const id = useSelector((state: RootState) => state.auth.id)
   const token = useSelector((state: RootState) => state.auth.token)
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,6 +28,7 @@ function Login() {
         dispatch(setToken(data.access_token));
         dispatch(setID(data.id));
         dispatch(setUsername(data.username));
+        navigate('/tasks');
       })
       .catch((err) => {
         console.error(err);

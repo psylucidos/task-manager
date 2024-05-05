@@ -1,0 +1,25 @@
+.Task {
+  margin: 0;
+  padding: 0;
+}
+
+.task-container {
+  margin: 0;
+  padding: 0;
+}
+
+.task-list {
+  margin: 0;
+  padding: 0;
+}
+
+.Task {
+  margin: 2vw;
+  background: whitesmoke;
+  padding: 0;
+  width: 20vw;
+}
+
+.Task p, .Task h3, .Task h4, .Task p {
+  margin: 0;
+}
