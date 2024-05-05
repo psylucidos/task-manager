@@ -27,7 +27,7 @@ export class AuthenticationService {
 
   async login(user: User): Promise<AccessToken> {
     const payload = { email: user.email, id: user.id };
-    return { access_token: this.jwtService.sign(payload), id: user.id };
+    return { access_token: this.jwtService.sign(payload), username: user.username, id: user.id };
   }
 
   async register(user: RegisterDto): Promise<AccessToken> {
@@ -37,7 +37,7 @@ export class AuthenticationService {
     }
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const newUser: User = { ...user, password: hashedPassword };
-    await this.usersService.create(newUser);
-    return this.login(newUser);
+    const createdUser = await this.usersService.create(newUser);
+    return this.login(createdUser);
   }
 }

@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { IsOptional } from 'class-validator';
 
-@Entity()
+@Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn('uuid')
   id: string;

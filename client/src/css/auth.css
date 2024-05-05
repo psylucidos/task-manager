@@ -1,0 +1,19 @@
+.Auth {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Auth-container {
+  background: aliceblue;
+  width: 40vw;
+  height: 50vh;
+}
+
+h3 {
+  margin: 0;
+}

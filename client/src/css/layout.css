@@ -1,0 +1,33 @@
+.Layout-nav {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 10vh;
+  background-color: aliceblue;
+}
+
+.nav-title {
+  margin: 0;
+  padding: 0;
+  font-size: 4vh;
+  margin-top: 2.5vh;
+  margin-left: 2.5vh;
+  float: left;
+}
+
+.auth-btn {
+  background: transparent;
+  border: 2px solid black;
+  border-radius: 0px;
+  height: 5vh;
+  width: 7vw;
+  margin-top: 2.5vh;
+  margin-right: 2.5vh;
+  float: right;
+  font-family: monospace;
+}
+
+.auth-btn:hover {
+  background: black;
+  color: white;
+}

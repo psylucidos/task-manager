@@ -8,6 +8,9 @@ export class AccessToken {
 
   @IsNotEmpty()
   id: string;
+  
+  @IsNotEmpty()
+  username: string;
 }
 
 // { access_token: this.jwtService.sign(payload) }

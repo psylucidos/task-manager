@@ -1,6 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn("uuid")
   id: string;
@@ -8,7 +8,7 @@ export class User {
   @Column({ type: 'varchar', length: 15 })
   username: string;
 
-  @Column({ type: 'varchar', length: 40 })
+  @Column({ type: 'varchar', length: 40, unique: true })
   email: string;
 
   @Column({ type: 'varchar' })
