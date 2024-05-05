@@ -13,6 +13,10 @@ export class CreateTaskDto {
   @MinLength(5, { message: 'UUID must have at least 5 characters.' })
   author: string;
 
+  @IsString()
+  @IsNotEmpty()
+  duedate: string;
+
   @IsNumber()
   priority: number;
 

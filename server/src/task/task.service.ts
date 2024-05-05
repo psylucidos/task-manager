@@ -79,6 +79,7 @@ export class TaskService {
   create(createTaskDto: CreateTaskDto): Promise<Task> {
     const task: Task = new Task();
     task.author = createTaskDto.author;
+    task.duedate = createTaskDto.duedate;
     task.priority = createTaskDto.priority;
     task.dependencies = createTaskDto.dependencies;
     task.subtasks = createTaskDto.subtasks;
@@ -137,6 +138,7 @@ export class TaskService {
       const task: Task = new Task();
       task.id = id;
       task.author = updateTaskDto.author;
+      task.duedate = updateTaskDto.duedate;
       task.priority = updateTaskDto.priority;
       task.dependencies = updateTaskDto.dependencies;
       task.subtasks = updateTaskDto.subtasks;
@@ -160,6 +162,7 @@ export class TaskService {
           const newTask: Task = new Task();
           newTask.id = task.id;
           newTask.author = task.author;
+          newTask.duedate = task.duedate;
           newTask.priority = task.priority;
           newTask.dependencies = task.dependencies;
           newTask.subtasks = task.subtasks;

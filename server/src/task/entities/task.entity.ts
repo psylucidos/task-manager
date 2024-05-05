@@ -9,6 +9,9 @@ export class Task {
   @Column({ type: 'varchar' })
   author: string;
 
+  @Column({ type: 'date' })
+  duedate: string;
+
   @Column('int')
   priority: number;
 
