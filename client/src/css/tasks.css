@@ -8,6 +8,26 @@
   padding: 0;
 }
 
+.edit-task-container {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 100vw;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.EditTask {
+  width: 30vw;
+  height: 60vh;
+  padding: 2.5vh;
+  margin: 0;
+  border-radius: 4px;
+  background: grey;
+}
+
 .task-list {
   margin: 0;
   padding: 0;

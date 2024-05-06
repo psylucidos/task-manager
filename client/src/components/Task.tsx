@@ -16,7 +16,7 @@ interface taskInterface {
   doable: boolean;
 }
 
-function Task({ taskData }: { taskData: taskInterface }) {
+function Task({ taskData, openTask }: { taskData: taskInterface, openTask: Function }) {
   const userID = useSelector((state: RootState) => state.auth.id)
   const userToken = useSelector((state: RootState) => state.auth.token)
   const dispatch = useDispatch();
@@ -36,6 +36,7 @@ function Task({ taskData }: { taskData: taskInterface }) {
       <p>Due: {taskData.duedate}</p>
       <p>Dependencies: {taskData.dependencies}</p>
       <p>Subtasks: {taskData.subtasks}</p>
+      <a onClick={() => openTask(taskData)}>edit</a>
     </li>
   );
 }
