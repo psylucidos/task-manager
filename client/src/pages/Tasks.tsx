@@ -5,6 +5,7 @@ import { setID, setToken, setUsername } from '../app/authslice';
 import { useNavigate } from 'react-router-dom';
 import Task from '../components/Task';
 import EditTask from '../components/EditTask';
+import Graph from '../components/test/Graph';
 import axios from 'axios';
 import '../css/tasks.css';
 
@@ -83,6 +84,7 @@ function Tasks() {
           {tasks}
         </ul>
       </div>
+      <Graph />
     </div>
   );
 }
