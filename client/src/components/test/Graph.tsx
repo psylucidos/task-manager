@@ -87,10 +87,63 @@ tasks.map((item) => {
   }
 });
 
-function TopologyGraph() {
+const nodeTypes = {
+  custom: ({ data }: { data: { label: string; description: string } }) => (
+    <div>
+      <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.label}</div>
+      <div style={{ fontSize: '12px' }}>{data.description}</div>
+    </div>
+  ),
+};
+
+const edgeTypes = {
+  default: ({
+    id,
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    style = {},
+  }: {
+    id: string;
+    sourceX: number;
+    sourceY: number;
+    targetX: number;
+    targetY: number;
+    style?: React.CSSProperties;
+  }) => (
+    <g>
+      <defs>
+        <marker
+          id="arrow"
+          markerWidth="10"
+          markerHeight="10"
+          refX="8"
+          refY="3"
+          orient="auto"
+          markerUnits="strokeWidth"
+        >
+          <path d="M0,0 L0,6 L9,3 z" fill="#000" />
+        </marker>
+      </defs>
+      <path
+        id={id}
+        style={style}
+        d={`M${sourceX},${sourceY} C ${sourceX} ${targetY} ${sourceX} ${targetY} ${targetX},${targetY}`}
+        markerEnd="url(#arrow)"
+        strokeWidth={1.5}
+        stroke="#000"
+        fill="none"
+      />
+    </g>
+  ),
+};
+
+function TopologyGraph({ openTask }: { openTask: Function }) {
   const onNodeClick = (event: MouseEvent, node: Node) => {
     console.log('Node clicked:', node);
     // You can also emit an event here, or call a function passed as a prop
+    openTask(node);
   };
 
   return (
@@ -99,42 +152,8 @@ function TopologyGraph() {
         nodes={nodes}
         edges={edges}
         onNodeClick={onNodeClick}
-        nodeTypes={{
-          custom: ({ data }) => (
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.label}</div>
-              <div style={{ fontSize: '12px' }}>{data.description}</div>
-            </div>
-          ),
-        }}
-        edgeTypes={{
-          default: ({ id, sourceX, sourceY, targetX, targetY, style = {} }) => (
-            <g>
-              <defs>
-                <marker
-                  id="arrow"
-                  markerWidth="10"
-                  markerHeight="10"
-                  refX="8"
-                  refY="3"
-                  orient="auto"
-                  markerUnits="strokeWidth"
-                >
-                  <path d="M0,0 L0,6 L9,3 z" fill="#000" />
-                </marker>
-              </defs>
-              <path
-                id={id}
-                style={style}
-                d={`M${sourceX},${sourceY} C ${sourceX} ${targetY} ${sourceX} ${targetY} ${targetX},${targetY}`}
-                markerEnd="url(#arrow)"
-                strokeWidth={1.5}
-                stroke="#000"
-                fill="none"
-              />
-            </g>
-          ),
-        }}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
       />
     </div>
   );

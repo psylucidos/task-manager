@@ -102,7 +102,7 @@ function Tasks() {
           {tasks}
         </ul>
       </div>
-      <Graph />
+      <Graph openTask={openTaskInEdit}/>
     </div>
   );
 }
