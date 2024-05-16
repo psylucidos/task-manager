@@ -5,6 +5,7 @@ import { setID, setToken, setUsername } from '../app/authslice';
 import { useNavigate } from 'react-router-dom';
 import Task from '../components/Task';
 import EditTask from '../components/EditTask';
+import AddTask from '../components/AddTask'; // import the AddTask component
 import Graph from '../components/test/Graph';
 import axios from 'axios';
 import '../css/tasks.css';
@@ -31,6 +32,7 @@ function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [displayEditableTask, setDisplayEditableTask] = useState(false);
   const [editableTask, setEditableTask] = useState(<div></div>);
+  const [displayAddTask, setDisplayAddTask] = useState(false); // state for displaying the add task popup
 
   const config = {
     headers: { Authorization: `Bearer ${userToken}` }
@@ -45,6 +47,16 @@ function Tasks() {
     console.log('open task in edit', task.id);
     setDisplayEditableTask(true);
     setEditableTask(<EditTask key={task.id} taskData={task} closeFunction={closeEditTask} />)
+  }
+
+  function closeAddTask() {
+    console.log('close add task');
+    setDisplayAddTask(false);
+  }
+
+  function openAddTask() {
+    console.log('open add task');
+    setDisplayAddTask(true);
   }
 
   useEffect(() => {
@@ -78,8 +90,14 @@ function Tasks() {
           {editableTask}
         </div>
       )}
+      {displayAddTask && (
+        <div className="add-task-container">
+          <AddTask closeFunction={closeAddTask} />
+        </div>
+      )}
       <div className="tasks-container">
         <h3>Tasks for {userID}</h3>
+        <button onClick={openAddTask}>Add Task</button> // button to add a new task
         <ul className="tasks-list">
           {tasks}
         </ul>

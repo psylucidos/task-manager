@@ -20,6 +20,28 @@
 }
 
 .EditTask {
+  z-index: 10;
+  width: 30vw;
+  height: 60vh;
+  padding: 2.5vh;
+  margin: 0;
+  border-radius: 4px;
+  background: grey;
+}
+
+.add-task-container {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 100vw;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.AddTask {
+  z-index: 10;
   width: 30vw;
   height: 60vh;
   padding: 2.5vh;
