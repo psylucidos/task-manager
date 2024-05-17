@@ -100,6 +100,24 @@ export class TaskController {
     }
   }
 
+  @Post(':id/dependency')
+  addDependency(@Param('id') id: string, @Body() dependencyId: { dependencyId: string }, @Request() req) {
+    if (id.length !== 36 || dependencyId.dependencyId.length !== 36) {
+      throw new HttpException('Invalid ID format!', HttpStatus.BAD_REQUEST);
+    }
+
+    return this.taskService.addDependency(id, dependencyId.dependencyId);
+  }
+
+  @Delete(':id/dependency/:dependencyId')
+  removeDependency(@Param('id') id: string, @Param('dependencyId') dependencyId: string, @Request() req) {
+    if (id.length !== 36 || dependencyId.length !== 36) {
+      throw new HttpException('Invalid ID format!', HttpStatus.BAD_REQUEST);
+    }
+
+    return this.taskService.removeDependency(id, dependencyId);
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req) {
     if (id.length === 36) {

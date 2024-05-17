@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { RootState } from '../app/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { setID, setToken, setUsername } from '../app/authslice';
@@ -30,6 +30,8 @@ function Tasks() {
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);
+  const tasksDataRef = useRef([]);
+  const [tasksData, setTasksData] = useState([]);
   const [displayEditableTask, setDisplayEditableTask] = useState(false);
   const [editableTask, setEditableTask] = useState(<div></div>);
   const [displayAddTask, setDisplayAddTask] = useState(false); // state for displaying the add task popup
@@ -46,7 +48,15 @@ function Tasks() {
   function openTaskInEdit(task: taskInterface) {
     console.log('open task in edit', task.id);
     setDisplayEditableTask(true);
-    setEditableTask(<EditTask key={task.id} taskData={task} closeFunction={closeEditTask} />)
+    console.log('here are task ids:', tasksDataRef.current);
+    setEditableTask(
+      <EditTask
+        key={task.id}
+        allTasks={tasksDataRef.current}
+        taskData={task}
+        closeFunction={closeEditTask}
+      />
+    );
   }
 
   function closeAddTask() {
@@ -61,27 +71,33 @@ function Tasks() {
 
   useEffect(() => {
     axios
-    .get(`http://localhost:3001/task/author/${userID}`, config)
-    .then((res) => {
-      console.log(res);
-      const { data } = res;
-      if (data.length > 0) {
+      .get(`http://localhost:3001/task/author/${userID}`, config)
+      .then((res) => {
+        console.log(res);
+        const { data } = res;
+        if (data.length > 0) {
+          console.log('setting task data', data);
+          setTasksData(data);
+        }
         setTasks(data.map((task: taskInterface) =>
           <Task key={task.id} taskData={task} openTask={openTaskInEdit} />
         ));
         // setEditableTask(<EditTask key={data[0].id} taskData={data[0]} />)
-      }
-    })
-    .catch((err) => {
-      if (err.response.status === 401) {
-        dispatch(setID(''));
-        dispatch(setUsername(''));
-        dispatch(setToken(''));
-        navigate('/auth');
-      }
-      console.error(err);
-    });
+      })
+      .catch((err) => {
+        if (err.response.status === 401) {
+          dispatch(setID(''));
+          dispatch(setUsername(''));
+          dispatch(setToken(''));
+          navigate('/auth');
+        }
+        console.error(err);
+      });
   }, []);
+
+  useEffect(() => {
+    tasksDataRef.current = tasksData;
+  }, [tasksData]);
 
   return (
     <div className="Tasks">
@@ -102,7 +118,7 @@ function Tasks() {
           {tasks}
         </ul>
       </div>
-      <Graph openTask={openTaskInEdit}/>
+      <Graph tasks={tasksData} openTask={openTaskInEdit}/>
     </div>
   );
 }

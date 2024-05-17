@@ -9,64 +9,64 @@ interface CustomNode extends Node {
   };
 }
 
-const tasks: Task[] = [
-  {
-    id: '1',
-    author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
-    duedate: '2024-05-05',
-    priority: 0,
-    dependencies: [],
-    subtasks: [],
-    status: 0,
-    title: 'First task',
-    description: 'description.',
-    doable: true,
-    x: 0,
-    y: 0
-  },
-  {
-    id: '2',
-    author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
-    duedate: '2024-05-05',
-    priority: 0,
-    dependencies: [ '1' ],
-    subtasks: [],
-    status: 0,
-    title: 'Second task',
-    description: 'description.',
-    doable: false,
-    x: 0,
-    y: 0
-  },
-  {
-    id: '3',
-    author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
-    duedate: '2024-05-05',
-    priority: 0,
-    dependencies: [],
-    subtasks: [],
-    status: 0,
-    title: 'Second task',
-    description: 'description.',
-    doable: false,
-    x: 0,
-    y: 0
-  },
-  {
-    id: '4',
-    author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
-    duedate: '2024-05-05',
-    priority: 0,
-    dependencies: [ '1' ],
-    subtasks: [],
-    status: 0,
-    title: 'Second task',
-    description: 'description.',
-    doable: false,
-    x: 0,
-    y: 0
-  }
-]
+// const tasks: Task[] = [
+//   {
+//     id: '1',
+//     author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
+//     duedate: '2024-05-05',
+//     priority: 0,
+//     dependencies: [],
+//     subtasks: [],
+//     status: 0,
+//     title: 'First task',
+//     description: 'description.',
+//     doable: true,
+//     x: 0,
+//     y: 0
+//   },
+//   {
+//     id: '2',
+//     author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
+//     duedate: '2024-05-05',
+//     priority: 0,
+//     dependencies: [ '1' ],
+//     subtasks: [],
+//     status: 0,
+//     title: 'Second task',
+//     description: 'description.',
+//     doable: false,
+//     x: 0,
+//     y: 0
+//   },
+//   {
+//     id: '3',
+//     author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
+//     duedate: '2024-05-05',
+//     priority: 0,
+//     dependencies: [],
+//     subtasks: [],
+//     status: 0,
+//     title: 'Second task',
+//     description: 'description.',
+//     doable: false,
+//     x: 0,
+//     y: 0
+//   },
+//   {
+//     id: '4',
+//     author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
+//     duedate: '2024-05-05',
+//     priority: 0,
+//     dependencies: [ '1' ],
+//     subtasks: [],
+//     status: 0,
+//     title: 'Second task',
+//     description: 'description.',
+//     doable: false,
+//     x: 0,
+//     y: 0
+//   }
+// ]
 
 interface Task {
   x: number;
@@ -107,6 +107,7 @@ function placeTasksInGrid(tasks: Task[]): Task[] {
       // Place dependencies below this task
       task.dependencies.forEach((dependency, index) => {
           const dependentTask: Task = taskMap[dependency];
+          console.log('recursing with', dependentTask );
           placeTask(dependentTask, x, y + index + 1);
       });
 
@@ -163,38 +164,7 @@ function orderTasks(tasks: Task[]): Task[] {
 //   { name: 'F', dependencies: ['E'] },
 // ];
 
-const orderedTasks: Task[] = orderTasks(tasks);
-const placedTasks: Task[] = placeTasksInGrid(orderedTasks);
 
-console.log('placed tasks');
-console.log(placedTasks);
-
-const nodes: CustomNode[] = [];
-
-tasks.map((task) => {
-  nodes.push({
-    id: task.id,
-    // type: 'custom',
-    data: { 
-      label: task.title, 
-      description: task.description 
-    },
-    position: { x: task.x, y: task.y }
-  })
-})
-
-const edges: Edge[] = [];
-
-let i = 0;
-tasks.map((item) => {
-  if (item.dependencies) {
-    for (let dependency in item.dependencies) {
-      let source = item.dependencies[dependency];
-      i += 1;
-      edges.push({ id: `${i}`, source: source, target: item.id })
-    }
-  }
-});
 
 const nodeTypes = {
   custom: ({ data }: { data: { label: string; description: string } }) => (
@@ -248,7 +218,41 @@ const edgeTypes = {
   ),
 };
 
-function TopologyGraph({ openTask }: { openTask: Function }) {
+function TopologyGraph({ tasks, openTask }: { tasks: Task[], openTask: Function }) {
+
+  const orderedTasks: Task[] = orderTasks(tasks);
+  const placedTasks: Task[] = placeTasksInGrid(orderedTasks);
+
+  console.log('placed tasks');
+  console.log(tasks);
+
+  const nodes: CustomNode[] = [];
+
+  placedTasks.map((task) => {
+    nodes.push({
+      id: task.id,
+      // type: 'custom',
+      data: { 
+        label: task.title, 
+        description: task.description 
+      },
+      position: { x: task.x, y: task.y }
+    })
+  })
+
+  const edges: Edge[] = [];
+
+  let i = 0;
+  tasks.map((item) => {
+    if (item.dependencies) {
+      for (let dependency in item.dependencies) {
+        let source = item.dependencies[dependency];
+        i += 1;
+        edges.push({ id: `${i}`, source: source, target: item.id })
+      }
+    }
+  });
+
   const onNodeClick = (event: MouseEvent, node: Node) => {
     console.log('Node clicked:', node);
     // You can also emit an event here, or call a function passed as a prop

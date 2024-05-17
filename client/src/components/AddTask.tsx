@@ -18,6 +18,7 @@ interface taskInterface {
 
 function AddTask({ closeFunction }: { closeFunction: Function }) {
   const userToken = useSelector((state: RootState) => state.auth.token);
+  const userID = useSelector((state: RootState) => state.auth.id);
 
   const [task, setTask] = useState({
     title: '',
@@ -37,15 +38,12 @@ function AddTask({ closeFunction }: { closeFunction: Function }) {
   async function addTask() {
     // Call API to add task
     console.log('adding task:', task);
-    // You can use axios to make a POST request to your API
-    // axios.post('/api/tasks', task, config)
-    //   .then(response => {
-    //     console.log(response.data);
-    //     closeFunction();
-    //   })
-    //   .catch(error => {
-    //     console.error(error);
-    //   });
+    axios
+      .post(`http://localhost:3001/task/`, { ...task, author: userID }, config)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => console.error(err));
   }
 
   return (

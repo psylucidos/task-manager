@@ -16,7 +16,7 @@ interface taskInterface {
   doable: boolean;
 }
 
-function EditTask({ taskData, closeFunction }: { taskData: taskInterface, closeFunction: Function }) {
+function EditTask({ taskData, closeFunction, allTasks }: { taskData: taskInterface, closeFunction: Function, allTasks: taskInterface[] }) {
   const userToken = useSelector((state: RootState) => state.auth.token);
 
   const [task, setTask] = useState(taskData);
@@ -28,6 +28,12 @@ function EditTask({ taskData, closeFunction }: { taskData: taskInterface, closeF
   const config = {
     headers: { Authorization: `Bearer ${userToken}` }
   };
+
+  const processedTasks: {id: string, name: string}[] =
+    allTasks.filter((task) => task.id !== taskData.id)
+    .map((task) => ({ id: task.id, name: task.title }));
+
+  const [possibleDependencies, setPossibleDependencies] = useState(processedTasks);
 
   function submitTitle(e: { key: string; }) {
     if (e.key === 'Enter') {
@@ -83,6 +89,32 @@ function EditTask({ taskData, closeFunction }: { taskData: taskInterface, closeF
   useEffect(submitStatus, [task.status]);
   useEffect(submitPriority, [task.priority]);
 
+  function addDependency(dependencyId: string) {
+    if (!task.dependencies.includes(dependencyId)) {
+      axios
+        .post(`http://localhost:3001/task/${task.id}/dependency`, { dependencyId }, config)
+        .then((res) => {
+          setTask({
+            ...task,
+            dependencies: [...task.dependencies, dependencyId],
+          });
+        })
+        .catch((err) => console.error(err));
+    }
+  }
+  
+  function removeDependency(dependencyId: string) {
+    axios
+      .delete(`http://localhost:3001/task/${task.id}/dependency/${dependencyId}`, config)
+      .then((res) => {
+        setTask({
+          ...task,
+          dependencies: task.dependencies.filter((id) => id !== dependencyId),
+        });
+      })
+      .catch((err) => console.error(err));
+  }
+
   return (
     <div className="EditTask">
       <b>#{task.id} by #{task.author}</b>
@@ -101,7 +133,7 @@ function EditTask({ taskData, closeFunction }: { taskData: taskInterface, closeF
         ) : (
           <h3
             onClick={() => setTitleEditMode(true)}
-            style={{color: task.doable ? 'black' : 'grey'}}
+            style={{color: task.doable ? 'black' : 'white'}}
           >{task.title}</h3>
         )}
 
@@ -145,7 +177,28 @@ function EditTask({ taskData, closeFunction }: { taskData: taskInterface, closeF
           <option value="0">Incomplete</option>
         </select>
         
-        <p>Dependencies: {task.dependencies}</p>
+        <p>Dependencies:</p>
+        <ul>
+          {task.dependencies.map((dependencyId) => (
+            <li key={dependencyId}>
+              {dependencyId}
+              <button onClick={() => removeDependency(dependencyId)}>X</button>
+            </li>
+          ))}
+        </ul>
+
+        <select
+          value=""
+          onChange={(e) => addDependency(e.target.value)}
+        >
+          <option value="">Add dependency</option>
+          {possibleDependencies.map((dependency) => (
+            <option key={dependency.id} value={dependency.id}>
+              {dependency.name}
+            </option>
+          ))}
+        </select>
+
         <p>Subtasks: {task.subtasks}</p>
         <p>Doable: {String(task.doable)}</p>
       </div>

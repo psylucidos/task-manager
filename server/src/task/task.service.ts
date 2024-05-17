@@ -42,7 +42,7 @@ export class TaskService {
   private async checkForCircularDependencies(taskID: string, oldDependencies: string[], newDependencies: string[]): Promise<boolean> {
     let dependencies = [];
     newDependencies.forEach(newDependency => {
-      if (!oldDependencies.includes(newDependency)) {
+      if (newDependency !== taskID && !oldDependencies.includes(newDependency)) {
         dependencies.push(newDependency);
       }
     });
@@ -140,13 +140,48 @@ export class TaskService {
       task.author = updateTaskDto.author;
       task.duedate = updateTaskDto.duedate;
       task.priority = updateTaskDto.priority;
-      task.dependencies = updateTaskDto.dependencies;
+      task.dependencies = updateTaskDto.dependencies.filter(dependency => dependency !== id);
       task.subtasks = updateTaskDto.subtasks;
       task.status = updateTaskDto.status;
       task.title = updateTaskDto.title;
       task.description = updateTaskDto.description;
       return this.taskRepository.save(task);
     }
+  }
+
+  async addDependency(id: string, dependencyId: string): Promise<Task> {
+    if (id === dependencyId) {
+      throw new HttpException('A task cannot be its own dependency!', HttpStatus.BAD_REQUEST);
+    }
+  
+    const currentTask = await this.findOne(id);
+    if (!currentTask) {
+      throw new HttpException('Task not found!', HttpStatus.NOT_FOUND);
+    }
+  
+    const hasCircularDependencies = await this.checkForCircularDependencies(id, currentTask.dependencies, [dependencyId]);
+  
+    if (hasCircularDependencies) {
+      throw new HttpException('Circular dependency structure detected!', HttpStatus.CONFLICT);
+    } else {
+      currentTask.dependencies.push(dependencyId);
+      return this.taskRepository.save(currentTask);
+    }
+  }
+  
+  async removeDependency(id: string, dependencyId: string): Promise<Task> {
+    const currentTask = await this.findOne(id);
+    if (!currentTask) {
+      throw new HttpException('Task not found!', HttpStatus.NOT_FOUND);
+    }
+  
+    const index = currentTask.dependencies.indexOf(dependencyId);
+    if (index === -1) {
+      throw new HttpException('Dependency not found!', HttpStatus.NOT_FOUND);
+    }
+  
+    currentTask.dependencies.splice(index, 1);
+    return this.taskRepository.save(currentTask);
   }
 
   async remove(id: string): Promise<{ affected?: number }> {
