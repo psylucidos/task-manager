@@ -9,7 +9,7 @@ interface CustomNode extends Node {
   };
 }
 
-const tasks = [
+const tasks: Task[] = [
   {
     id: '1',
     author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
@@ -20,7 +20,9 @@ const tasks = [
     status: 0,
     title: 'First task',
     description: 'description.',
-    doable: true
+    doable: true,
+    x: 0,
+    y: 0
   },
   {
     id: '2',
@@ -32,19 +34,23 @@ const tasks = [
     status: 0,
     title: 'Second task',
     description: 'description.',
-    doable: false
+    doable: false,
+    x: 0,
+    y: 0
   },
   {
     id: '3',
     author: '2fd7b3dc-44c4-4a8c-ac1d-8ede1ea509cc',
     duedate: '2024-05-05',
     priority: 0,
-    dependencies: [ '2' ],
+    dependencies: [],
     subtasks: [],
     status: 0,
     title: 'Second task',
     description: 'description.',
-    doable: false
+    doable: false,
+    x: 0,
+    y: 0
   },
   {
     id: '4',
@@ -56,9 +62,112 @@ const tasks = [
     status: 0,
     title: 'Second task',
     description: 'description.',
-    doable: false
+    doable: false,
+    x: 0,
+    y: 0
   }
 ]
+
+interface Task {
+  x: number;
+  y: number;
+  id: string
+  author: string
+  duedate: string
+  priority: number
+  dependencies: string[]
+  subtasks: string[]
+  status: number
+  title: string
+  description: string
+  doable: boolean
+}
+
+function placeTasksInGrid(tasks: Task[]): Task[] {
+  const grid: Task[][] = [];
+  const margin: number = 100;
+  const taskWidth: number = 200;
+  const taskHeight: number = 100;
+
+  // Create a map of tasks for easy access
+  const taskMap: { [title: string]: Task } = {};
+  tasks.forEach(task => {
+      taskMap[task.id] = task;
+  });
+
+  // Function to place a task in the grid
+  function placeTask(task: Task, x: number, y: number): Task {
+      if (!grid[x]) {
+          grid[x] = [];
+      }
+      grid[x][y] = task;
+      task.x = x * (taskWidth + margin);
+      task.y = y * (taskHeight + margin);
+
+      // Place dependencies below this task
+      task.dependencies.forEach((dependency, index) => {
+          const dependentTask: Task = taskMap[dependency];
+          placeTask(dependentTask, x, y + index + 1);
+      });
+
+      return task;
+  }
+
+  // Find tasks with no dependencies and place them in the grid
+  let x: number = 0;
+  tasks.forEach((task, index) => {
+      tasks[index] = placeTask(task, x, 0);
+      x++;
+  });
+
+  return tasks;
+}
+
+// Function to order tasks based on their dependencies
+function orderTasks(tasks: Task[]): Task[] {
+  const taskMap: { [name: string]: Task } = {};
+  tasks.forEach(task => {
+      taskMap[task.id] = task;
+  });
+
+  const orderedTasks: Task[] = [];
+  const visited: { [id: string]: boolean } = {};
+
+  function visitTask(task: Task) {
+      if (visited[task.id]) {
+          return;
+      }
+      visited[task.id] = true;
+
+      task.dependencies.forEach(dependency => {
+          visitTask(taskMap[dependency]);
+      });
+
+      orderedTasks.push(task);
+  }
+
+  tasks.forEach(task => {
+      visitTask(task);
+  });
+
+  return orderedTasks;
+}
+
+// Test the functions
+// const tasks: Task[] = [
+//   { name: 'A', dependencies: [] },
+//   { name: 'B', dependencies: ['A'] },
+//   { name: 'C', dependencies: ['A'] },
+//   { name: 'D', dependencies: ['B', 'C'] },
+//   { name: 'E', dependencies: [] },
+//   { name: 'F', dependencies: ['E'] },
+// ];
+
+const orderedTasks: Task[] = orderTasks(tasks);
+const placedTasks: Task[] = placeTasksInGrid(orderedTasks);
+
+console.log('placed tasks');
+console.log(placedTasks);
 
 const nodes: CustomNode[] = [];
 
@@ -70,7 +179,7 @@ tasks.map((task) => {
       label: task.title, 
       description: task.description 
     },
-    position: { x: Math.random()*500, y: Math.random()*500 }
+    position: { x: task.x, y: task.y }
   })
 })
 
